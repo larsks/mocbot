@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec supybot supybot.conf
+exec supybot run/supybot.conf

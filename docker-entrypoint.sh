@@ -9,8 +9,8 @@ if [ "$(id -u)" -eq 0 ]; then
 	exec su-exec supybot $0 "$@"
 fi
 
-if ! [ -f supybot.conf ]; then
-	python gen_config.py -o supybot.conf supybot.conf.in
+if ! [ -z "$SUPYBOT_REPLACE_CONFIG" ] || ! [ -f run/supybot.conf ]; then
+	python gen_config.py -o run/supybot.conf supybot.conf.in
 fi
 
 if [ ! -f run/conf/users.conf ]; then
