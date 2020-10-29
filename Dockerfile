@@ -17,6 +17,7 @@ RUN adduser -D -h /app supybot
 
 COPY . /app
 WORKDIR /app
+ENV GH_SOCKET_PATH=/app/run/github.sock
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
