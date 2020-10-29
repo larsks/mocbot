@@ -37,6 +37,7 @@ import zmq
 from supybot.commands import (wrap, additional)  # NOQA
 from supybot import callbacks
 from supybot import conf
+from supybot import ircdb
 from supybot import ircmsgs
 from supybot import log
 from supybot import world
@@ -128,6 +129,10 @@ class Github(callbacks.Plugin):
 
         Nothing to see here
         '''
+
+        if not ircdb.checkCapability(msg.prefix, 'admin'):
+            irc.reply('This command is only available to admins')
+            return
 
         self.qm.stats = {'total': 0}
         irc.reply('Reset counters')
