@@ -30,10 +30,11 @@
 
 import jinja2
 import json
+import os
 import threading
 import zmq
 
-from supybot.commands import (wrap, additional)
+from supybot.commands import (wrap, additional)  # NOQA
 from supybot import callbacks
 from supybot import conf
 from supybot import ircmsgs
@@ -46,6 +47,8 @@ env = jinja2.Environment(
 )
 
 github_conf = conf.supybot.plugins.get('Github')
+
+sock_path = os.environ.get('GH_SOCKET_PATH', '/run/github/github.sock')
 
 
 def handle_event(event_name, event):
@@ -88,7 +91,7 @@ class QueueManager(threading.Thread):
         log.info('start queue manager')
         self.ctx = ctx = zmq.Context()
         self.sock = sock = ctx.socket(zmq.SUB)
-        sock.bind('ipc:///tmp/github.sock')
+        sock.bind(f'ipc://{sock_path}')
         sock.subscribe('')
 
         while True:
@@ -120,8 +123,6 @@ class Github(callbacks.Plugin):
 
         irc.reply(json.dumps(self.qm.stats))
 
-    ghstats = wrap(ghstats)
-
     def ghreset(self, irc, msg, args):
         '''Reset the statistics counters
 
@@ -131,6 +132,5 @@ class Github(callbacks.Plugin):
         self.qm.stats = {'total': 0}
         irc.reply('Reset counters')
 
-    ghreset = wrap(ghreset)
 
 Class = Github
