@@ -7,12 +7,12 @@ from flask import Flask, request, make_response
 
 app = Flask(__name__)
 
-sock_path = os.environ.get('GH_SOCKET_PATH', '/run/github/github.sock')
+sock_uri = os.environ.get('GH_SOCKET_URI', 'ipc:///run/github/github.sock')
 webhook_secret = os.environ.get('GH_SECRET_TOKEN')
 
 ctx = zmq.Context()
 sock = ctx.socket(zmq.PUB)
-sock.connect(f'ipc://{sock_path}')
+sock.connect(sock_uri)
 
 
 class RequestValidationError(Exception):

@@ -49,7 +49,7 @@ env = jinja2.Environment(
 
 github_conf = conf.supybot.plugins.get('Github')
 
-sock_path = os.environ.get('GH_SOCKET_PATH', '/run/github/github.sock')
+sock_uri = os.environ.get('GH_SOCKET_URI', 'ipc:///run/github/github.sock')
 
 
 def handle_event(event_name, event):
@@ -92,7 +92,7 @@ class QueueManager(threading.Thread):
         log.info('start queue manager')
         self.ctx = ctx = zmq.Context()
         self.sock = sock = ctx.socket(zmq.SUB)
-        sock.bind(f'ipc://{sock_path}')
+        sock.bind(sock_uri)
         sock.subscribe('')
 
         while True:
