@@ -26,12 +26,20 @@ if [ ! -f run/conf/users.conf ]; then
 
 	echo "generating supybot owner in run/conf/users.conf"
 
-	mkdir -p run/conf
+	(
+
+	# this must be run from inside the run/ directory
+	# because supybot-adduser doesn't know how to 
+	# read a configuration file
+
+	cd run
+	mkdir -p conf
 	supybot-adduser \
 		-u "${SUPYBOT_OWNER_NAME}" \
 		-p "${SUPYBOT_OWNER_PASSWORD}" \
 		-c owner \
-		run/conf/users.conf
+		conf/users.conf
+	)
 fi
 
 exec "$@"
