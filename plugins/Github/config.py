@@ -45,10 +45,6 @@ def configure(advanced):
 
 Github = conf.registerPlugin('Github')
 
-conf.registerGlobalValue(
-    Github, 'webhook_secret',
-    registry.String('secret', 'Used to validate webhook content'))
-
 conf.registerChannelValue(
     Github, 'events',
     registry.String('*', 'Comma-separated list of events'))
