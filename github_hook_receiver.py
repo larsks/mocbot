@@ -8,7 +8,7 @@ from flask import Flask, request, make_response
 app = Flask(__name__)
 
 sock_path = os.environ.get('GH_SOCKET_PATH', '/run/github/github.sock')
-webhook_secret = os.environ.get('GH_SECRET_TOKEN').encode()
+webhook_secret = os.environ.get('GH_SECRET_TOKEN')
 
 ctx = zmq.Context()
 sock = ctx.socket(zmq.PUB)
