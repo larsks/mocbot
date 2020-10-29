@@ -1,0 +1,6 @@
+{%
+set issue, comment, sender = event.issue, event.comment, event.sender
+%}
+{{ sender.login }} {{ event.action }} comment on issue {{ issue.number }} [{{ issue.state }}] {{ issue.title }}
+  {{ issue.html_url }}
+  "{{ comment.body[:40] }}{% if comment.body|length > 40 %}...{% endif %}"
