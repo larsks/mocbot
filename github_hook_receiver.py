@@ -45,6 +45,7 @@ def handle_webhook():
     try:
         validate_request(request)
     except RequestValidationError as err:
+        app.logger.error('request failed: %s', err)
         sock.send_multipart([
             b'error',
             json.dumps({
