@@ -21,4 +21,3 @@ ENV GH_SOCKET_PATH=/app/run/github.sock
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["supybot", "supybot.conf"]
