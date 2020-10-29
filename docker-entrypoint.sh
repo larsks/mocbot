@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ "$1" = "sh" ]; then
+if [ "$#" -eq 1 ] &&  "$1" = "sh" ]; then
 	exec /bin/sh
 fi
 
