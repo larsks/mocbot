@@ -28,13 +28,13 @@ def validate_request(request):
         raise RequestValidationError('request is not json')
 
     if webhook_secret:
-        if 'x-hub-signature' not in request.headers:
+        if 'x-hub-signature-256' not in request.headers:
             raise RequestValidationError('no signature in request')
 
         sig = hmac.HMAC(key=webhook_secret.encode(), digestmod='sha256')
         sig.update(request.data)
-        have_sig = sig.hexdigest()
-        want_sig = request.headers['x-hub-signature']
+        have_sig = 'sha256=' + sig.hexdigest()
+        want_sig = request.headers['x-hub-signature-256']
 
         if debug:
             with open('run/debug.content', 'wb') as fd:
