@@ -13,10 +13,11 @@ COPY --from=builder /usr/local/lib/python3.8/site-packages /usr/local/lib/python
 COPY --from=builder /usr/local/bin/supybot* /usr/local/bin
 COPY --from=builder /usr/local/bin/gunicorn* /usr/local/bin
 
-RUN adduser -D -h /app mocbot
+RUN adduser -D -h /app supybot
 
 COPY . /app
 WORKDIR /app
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["supybot", "supybot.conf"]
