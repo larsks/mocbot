@@ -37,8 +37,8 @@ from supybot.commands import (wrap, additional)
 from supybot import callbacks
 from supybot import conf
 from supybot import ircmsgs
-from supybot import world
 from supybot import log
+from supybot import world
 
 
 env = jinja2.Environment(
@@ -62,18 +62,15 @@ def handle_event(event_name, event):
             want_events = github_conf.get('events').get(channel).value.lower().split(',')
             want_repos = github_conf.get('repos').get(channel).value.lower().split(',')
 
-            log.info('channel %s want_events %s', channel, want_events)
-            log.info('channel %s want_repos %s', channel, want_repos)
-
             if want_events != ['*'] and event_name.lower() not in want_events:
-                log.debug('not delivering message: %s not in want_events',
-                          event_name)
+                log.info('not delivering message to %s: %s not in want_events',
+                         channel, event_name)
                 continue
 
             repo_name = event['repository']['full_name'].lower()
             if want_repos != ['*'] and repo_name not in want_repos:
-                log.debug('not delivering message: %s not in want_repos',
-                          repo_name)
+                log.info('not delivering message to %s: %s not in want_repos',
+                         channel, repo_name)
                 continue
 
             for msg in msgs.splitlines():
@@ -85,6 +82,7 @@ def handle_event(event_name, event):
 class QueueManager(threading.Thread):
     def __init__(self):
         super().__init__(daemon=True)
+        self.stats = {'total': 0}
 
     def run(self):
         log.info('start queue manager')
@@ -98,27 +96,41 @@ class QueueManager(threading.Thread):
             event_name = event_name.decode()
             log.info('received %s message', event_name)
 
+            self.stats[event_name] = self.stats.get(event_name, 0) + 1
+            self.stats['total'] += 1
+
             event = json.loads(event_data)
             handle_event(event_name, event)
 
 
 class Github(callbacks.Plugin):
-    """Handle github webhooks"""
+    '''Handle github webhooks'''
     threaded = True
 
     def __init__(self, irc):
         super().__init__(irc)
-        t = QueueManager()
-        t.start()
+        self.qm = QueueManager()
+        self.qm.start()
 
-    def gh_status(self, irc, msg, args):
-        '''Check that bot is running.
+    def ghstats(self, irc, msg, args):
+        '''Return some basic statistics
+
+        Nothing to see here
         '''
 
-        irc.reply('Everything is hunky dory')
+        irc.reply(json.dumps(self.qm.stats))
 
+    ghstats = wrap(ghstats)
+
+    def ghreset(self, irc, msg, args):
+        '''Reset the statistics counters
+
+        Nothing to see here
+        '''
+
+        self.qm.stats = {'total': 0}
+        irc.reply('Reset counters')
+
+    ghreset = wrap(ghreset)
 
 Class = Github
-
-
-# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
