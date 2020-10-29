@@ -9,6 +9,7 @@ app = Flask(__name__)
 
 sock_uri = os.environ.get('GH_SOCKET_URI', 'ipc:///run/github/github.sock')
 webhook_secret = os.environ.get('GH_SECRET_TOKEN')
+debug = os.environ.get('GH_DEBUG')
 
 ctx = zmq.Context()
 sock = ctx.socket(zmq.PUB)
@@ -34,6 +35,19 @@ def validate_request(request):
         sig.update(request.data)
         have_sig = sig.hexdigest()
         want_sig = request.headers['x-hub-signature']
+
+        if debug:
+            with open('run/debug.content', 'wb') as fd:
+                fd.write(request.data)
+
+            with open('run/debug.have_sig', 'w') as fd:
+                fd.write(have_sig)
+
+            with open('run/debug.want_sig', 'w') as fd:
+                fd.write(want_sig)
+
+            with open('run/debug.secret', 'w') as fd:
+                fd.write(webhook_secret)
 
         if not hmac.compare_digest(have_sig, want_sig):
             raise RequestValidationError('request failed signature validation')
