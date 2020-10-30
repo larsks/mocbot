@@ -1,5 +1,5 @@
 {%
-set issue, sender = event.issue, event.sender
+set issue, sender, repo = event.issue, event.sender, event.repository
 %}
-{{ sender.login }} {{ event.action }} issue {{ issue.number }} [{{ issue.state }}] {{ issue.title }}
+{{ sender.login }} {{ event.action }} issue {{ repo.full_name }}#{{ issue.number }} [{{ issue.state }}] {{ issue.title }}
   {{ issue.html_url }}

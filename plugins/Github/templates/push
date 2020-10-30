@@ -1,0 +1,5 @@
+{%
+set sender, repo = event.sender, event.repository
+%}
+{{ sender.login }} pushed to {{ repo.full_name }}@{{ event.ref }}
+  {{ event.compare }}
