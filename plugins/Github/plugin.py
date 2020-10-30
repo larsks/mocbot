@@ -45,7 +45,11 @@ from supybot import world
 
 
 env = jinja2.Environment(
-    loader=jinja2.PackageLoader(__name__)
+    loader=jinja2.ChoiceLoader([
+        jinja2.FileSystemLoader('run/templates'),
+        jinja2.FileSystemLoader('templates'),
+        jinja2.PackageLoader(__name__),
+    ])
 )
 
 github_conf = conf.supybot.plugins.get('Github')
@@ -54,18 +58,19 @@ sock_uri = os.environ.get('GH_SOCKET_URI', 'ipc:///run/github/github.sock')
 
 
 def handle_event(event_name, event):
-    try:
-        template = env.get_template(event_name)
-    except jinja2.exceptions.TemplateNotFound:
-        log.warning('no template available for %s event', event_name)
-        return
-
-    msgs = template.render(event_name=event_name, event=event)
     event_action = '{}:{}'.format(
         event_name,
         event.get('action', '')
     ).lower()
     repo_name = event['repository']['full_name'].lower()
+
+    try:
+        template = env.select_template([event_action, event_name])
+    except jinja2.exceptions.TemplateNotFound:
+        log.warning('no template available for %s event', event_action)
+        return
+
+    msgs = template.render(event_name=event_name, event=event)
 
     for irc in world.ircs:
         for channel in irc.state.channels:

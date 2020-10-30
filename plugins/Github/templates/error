@@ -1,0 +1,2 @@
+webhook receiver reported an error from {{ event.forwarded_for|default(event.remote_addr) }}
+  message: {{ event.msg }}

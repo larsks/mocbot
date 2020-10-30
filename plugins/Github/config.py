@@ -55,7 +55,7 @@ conf.registerChannelValue(
 
 conf.registerChannelValue(
     Github, 'exclude_events',
-    registry.String('', 'Comma-separated list of events to exclude'))
+    registry.String('error', 'Comma-separated list of events to exclude'))
 
 conf.registerChannelValue(
     Github, 'exclude_repos',
