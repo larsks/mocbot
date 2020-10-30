@@ -150,7 +150,7 @@ supybot.capabilities.registeredUsers:
 #
 # Default value: True
 ###
-supybot.commands.allowShell: True
+supybot.commands.allowShell: {{ environ.SUPYBOT_ALLOW_SHELL|default('False') }}
 
 ###
 # Determines what commands have default plugins set, and which plugins
@@ -543,7 +543,7 @@ supybot.log.format: %(levelname)s %(asctime)s %(name)s %(message)s
 #
 # Default value: INFO
 ###
-supybot.log.level: DEBUG
+supybot.log.level: {{ environ.SUPYBOT_MAIN_LOG_LEVEL|default('WARNING') }}
 
 ###
 # Determines what the bot's logging format will be. The relevant
@@ -593,7 +593,7 @@ supybot.log.stdout.format: %(levelname)s %(asctime)s %(message)s
 #
 # Default value: INFO
 ###
-supybot.log.stdout.level: INFO
+supybot.log.stdout.level: {{ environ.SUPYBOT_STDOUT_LOG_LEVEL|default('INFO') }}
 
 ###
 # Determines whether the bot will wrap its logs when they're output to
@@ -633,7 +633,7 @@ supybot.networks.freenode.certfile:
 #
 # Default value:  
 ###
-supybot.networks.freenode.channels: {{ environ.IRC_CHANNELS }}
+supybot.networks.freenode.channels: {{ environ.SUPYBOT_CHANNELS }}
 
 ###
 # Determines what key (if any) will be used to join the channel.
@@ -656,7 +656,7 @@ supybot.networks.freenode.ident:
 #
 # Default value: 
 ###
-supybot.networks.freenode.nick: 
+supybot.networks.freenode.nick: {{ environ.SUPYBOT_FREENODE_NICK }}
 
 ###
 # Determines what password will be used on freenode. Yes, we know that
@@ -695,7 +695,7 @@ supybot.networks.freenode.sasl.mechanisms: ecdsa-nist256p-challenge external pla
 #
 # Default value: 
 ###
-supybot.networks.freenode.sasl.password: {{ environ.IRC_SASL_PASSWORD }}
+supybot.networks.freenode.sasl.password: {{ environ.SUPYBOT_SASL_PASSWORD }}
 
 ###
 # Determines whether the bot will abort the connection if the none of
