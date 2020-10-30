@@ -1,0 +1,5 @@
+{%
+set pull_request, sender, review, repo = event.pull_request, event.sender, event.review, event.repository
+%}
+{{ sender.login }} {{ event.action }} review on {{ repo.full_name }}#{{ pull_request.number }} [{{ pull_request.state }}] {{ pull_request.title }}
+  {{ review.html_url }}
