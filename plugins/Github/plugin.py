@@ -60,9 +60,13 @@ sock_uri = os.environ.get('GH_SOCKET_URI', 'ipc:///run/github/github.sock')
 def handle_event(event_name, event):
     event_action = '{}:{}'.format(
         event_name,
-        event.get('action', '')
+        event.get('action', 'none')
     ).lower()
-    repo_name = event['repository']['full_name'].lower()
+
+    if 'repository' in event:
+        repo_name = event['repository']['full_name'].lower()
+    else:
+        repo_name = 'none'
 
     try:
         template = env.select_template([event_action, event_name])
