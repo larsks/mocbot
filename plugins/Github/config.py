@@ -46,9 +46,17 @@ def configure(advanced):
 Github = conf.registerPlugin('Github')
 
 conf.registerChannelValue(
-    Github, 'events',
-    registry.String('*', 'Comma-separated list of events'))
+    Github, 'include_events',
+    registry.String('.*', 'Comma-separated list of events to include'))
 
 conf.registerChannelValue(
-    Github, 'repos',
-    registry.String('*', 'Comma-separated list of repositories'))
+    Github, 'include_repos',
+    registry.String('.*', 'Comma-separated list of repositories to include'))
+
+conf.registerChannelValue(
+    Github, 'exclude_events',
+    registry.String('', 'Comma-separated list of events to exclude'))
+
+conf.registerChannelValue(
+    Github, 'exclude_repos',
+    registry.String('', 'Comma-separated list of repositories to exclude'))

@@ -31,6 +31,7 @@
 import jinja2
 import json
 import os
+import re
 import threading
 import zmq
 
@@ -60,23 +61,45 @@ def handle_event(event_name, event):
         return
 
     msgs = template.render(event_name=event_name, event=event)
+    event_action = '{}:{}'.format(
+        event_name,
+        event.get('action', '')
+    ).lower()
+    repo_name = event['repository']['full_name'].lower()
 
     for irc in world.ircs:
         for channel in irc.state.channels:
-            want_events = github_conf.get('events').get(channel).value.lower().split(',')
-            want_repos = github_conf.get('repos').get(channel).value.lower().split(',')
+            log.info('considering %s message for %s to %s',
+                     event_action, repo_name, channel)
 
-            if want_events != ['*'] and event_name.lower() not in want_events:
-                log.info('not delivering message to %s: %s not in want_events',
+            include_events = github_conf.get('include_events').get(channel).value.strip().lower()
+            exclude_events = github_conf.get('exclude_events').get(channel).value.strip().lower()
+
+            include_repos = github_conf.get('include_repos').get(channel).value.strip().lower()
+            exclude_repos = github_conf.get('exclude_repos').get(channel).value.strip().lower()
+
+            if exclude_events and any(re.match(pattern, event_action) for pattern in exclude_events.split(',')):
+                log.info('not delivering message to %s: %s in exclude_events',
                          channel, event_name)
                 continue
 
-            repo_name = event['repository']['full_name'].lower()
-            if want_repos != ['*'] and repo_name not in want_repos:
-                log.info('not delivering message to %s: %s not in want_repos',
+            if not any(re.match(pattern, event_action) for pattern in include_events.split(',')):
+                log.info('not delivering message to %s: %s not in include_events',
+                         channel, event_name)
+                continue
+
+            if exclude_repos and any(re.match(pattern, repo_name) for pattern in exclude_repos.split(',')):
+                log.info('not delivering message to %s: %s in exclude_repos',
                          channel, repo_name)
                 continue
 
+            if not any(re.match(pattern, repo_name) for pattern in include_repos.split(',')):
+                log.info('not delivering message to %s: %s not in include_repos',
+                         channel, repo_name)
+                continue
+
+            log.info('delivering %s message for %s to %s',
+                     event_action, repo_name, channel)
             for msg in msgs.splitlines():
                 if not msg:
                     continue
