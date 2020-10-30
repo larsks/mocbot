@@ -11,6 +11,7 @@ fi
 
 if ! [ -z "$SUPYBOT_REPLACE_CONFIG" ] || ! [ -f run/supybot.conf ]; then
 	python gen_config.py -o run/supybot.conf supybot.conf.in
+	cp run/supybot.conf run/supybot.conf.initial
 fi
 
 if [ ! -f run/conf/users.conf ]; then
