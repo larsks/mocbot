@@ -3,12 +3,13 @@ import bottom
 import json
 import logging
 import time
+import yaml
 import zmq
 import zmq.asyncio
 
 from dataclasses import dataclass
 
-logging.basicConfig(level='DEBUG')
+from mocbot.exceptions import ConfigurationError
 
 LOG = logging.getLogger(__name__)
 
@@ -43,14 +44,33 @@ class Ratelimit:
 
 class Mocbot(bottom.Client):
 
-    def __init__(self, nick=None, config=None, **kwargs):
+    def __init__(self, config=None, **kwargs):
         super().__init__(**kwargs)
 
         self._config = config
         self._ratelimit = Ratelimit()
 
         self.init_zmq()
+        self.init_events()
 
+    @classmethod
+    def from_config_file(cls, path):
+        with open(path) as fd:
+            data = yaml.safe_load(fd)
+
+        try:
+            config = data['mocbot']
+
+            return cls(
+                config=config,
+                host=config['host'],
+                port=int(config.get('port', '6667')),
+                ssl=config.get('ssl'),
+            )
+        except KeyError:
+            raise ConfigurationError('missing required configuration values')
+
+    def init_events(self):
         self.on('CLIENT_CONNECT', self.on_connect)
 
     def init_zmq(self):
@@ -68,14 +88,14 @@ class Mocbot(bottom.Client):
         nick = self._config['nick']
 
         LOG.info('identifying to irc')
-        bot.send('NICK', nick=nick)
-        bot.send('USER', user=nick, realname=nick)
+        self.send('NICK', nick=nick)
+        self.send('USER', user=nick, realname=nick)
 
         # Don't try to join channels until the server has
         # sent the MOTD, or signaled that there's no MOTD.
         done, pending = await asyncio.wait(
-            [bot.wait("RPL_ENDOFMOTD"),
-             bot.wait("ERR_NOMOTD")],
+            [self.wait("RPL_ENDOFMOTD"),
+             self.wait("ERR_NOMOTD")],
             return_when=asyncio.FIRST_COMPLETED
         )
 
@@ -83,9 +103,9 @@ class Mocbot(bottom.Client):
         for future in pending:
             future.cancel()
 
-        for channel in self._config.get('channels', []):
+        for channel in self._config.get('channels', {}):
             LOG.info(f'joining {channel}')
-            bot.send('JOIN', channel=channel)
+            self.send('JOIN', channel=channel)
 
         LOG.info('starting announcer')
         asyncio.create_task(self.announcer())
@@ -101,23 +121,3 @@ class Mocbot(bottom.Client):
                 self.send('PRIVMSG',
                           target=channel,
                           message=f'Received {event_type} message')
-
-
-config = {
-    'nick': 'mocbot_dev',
-    'channels': [
-        '#oddbit',
-        '#oddbit-dev',
-    ],
-}
-
-
-bot = Mocbot(config=config,
-             host='chat.freenode.net',
-             port='6697',
-             ssl=True)
-
-
-loop = asyncio.get_event_loop()
-loop.create_task(bot.connect())
-loop.run_forever()
