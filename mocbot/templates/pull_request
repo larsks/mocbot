@@ -1,0 +1,5 @@
+{%
+set pull_request, sender, repo = event.pull_request, event.sender, event.repository
+%}
+{{ sender.login }} {{ event.action }} pull request {{ repo.full_name }}#{{ pull_request.number }} [{{ pull_request.state }}] {{ pull_request.title }}
+  {{ pull_request.html_url }}
