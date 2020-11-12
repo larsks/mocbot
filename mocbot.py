@@ -1,7 +1,10 @@
 import asyncio
 import bottom
+import json
 import logging
 import time
+import zmq
+import zmq.asyncio
 
 from dataclasses import dataclass
 
@@ -45,7 +48,17 @@ class Mocbot(bottom.Client):
 
         self._config = config
         self._ratelimit = Ratelimit()
+
+        self.init_zmq()
+
         self.on('CLIENT_CONNECT', self.on_connect)
+
+    def init_zmq(self):
+        sock_uri = self._config.get('zmq_socket_uri', 'tcp://127.0.0.1:1509')
+        self.ctx = zmq.asyncio.Context()
+        self.zs = self.ctx.socket(zmq.SUB)
+        self.zs.subscribe('')
+        self.zs.bind(sock_uri)
 
     def send(self, *args, **kwargs):
         self._ratelimit.next()
@@ -79,15 +92,15 @@ class Mocbot(bottom.Client):
 
     async def announcer(self):
         while True:
-            now = time.ctime()
+            event_type, event_data = await self.zs.recv_multipart()
+            event_type = event_type.decode()
+            event_data = json.loads(event_data)
+            LOG.info('received %s event', event_type)
 
-            LOG.info('announcing')
             for channel in self._config.get('channels', []):
                 self.send('PRIVMSG',
                           target=channel,
-                          message=f'The time is {now}')
-
-                await asyncio.sleep(0.5)
+                          message=f'Received {event_type} message')
 
 
 config = {
