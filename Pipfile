@@ -13,6 +13,7 @@ bottom = "*"
 zmq = "*"
 flask = "*"
 gunicorn = "*"
+dataclasses-json = "*"
 
 [requires]
 python_version = "3.8"

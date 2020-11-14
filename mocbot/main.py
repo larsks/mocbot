@@ -5,7 +5,8 @@ import os
 import sys
 
 from mocbot.bot import Mocbot
-from mocbot.exceptions import ApplicationError
+from mocbot.config import Configuration
+import mocbot.exceptions
 
 LOG = logging.getLogger(__name__)
 
@@ -22,12 +23,12 @@ def main(config_file, verbose):
     logging.basicConfig(level=loglevel)
 
     try:
-        bot = Mocbot.from_config_file(config_file)
-
+        config = Configuration.from_config_file(config_file, 'mocbot')
         loop = asyncio.get_event_loop()
+        bot = Mocbot(config)
         loop.create_task(bot.connect())
         loop.run_forever()
-    except ApplicationError as err:
+    except mocbot.exceptions.ApplicationError as err:
         raise click.ClickException(str(err))
 
 
