@@ -9,6 +9,13 @@ LOG = logging.getLogger(__name__)
 
 @dataclass
 class Ratelimit:
+    '''Await on a Ratelimit object to rate limit things.
+
+    Allows burts of up to <bucket> events. After the bucket is empty,
+    events are limited to 1 every <interval> seconds. Bucket refills
+    after <bucket_interval> seconds.
+    '''
+
     interval: int = 1
     bucket: int = 5
     bucket_interval: int = 10

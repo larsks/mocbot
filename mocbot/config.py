@@ -18,6 +18,8 @@ DEFAULT_EVENT_SOCKET = 'tcp://127.0.0.1:1509'
 
 
 class PatternObject:
+    '''Calls re.compile on all regular expression patterns'''
+
     def __post_init__(self):
         product = itertools.product(['include', 'exclude'],
                                     ['repos', 'events'])
@@ -33,6 +35,8 @@ class PatternObject:
 @dataclass_json
 @dataclass
 class Channel(PatternObject):
+    '''Configuration for an individual channel.'''
+
     name: str = None
     include_repos: List[str] = field(default_factory=list)
     exclude_repos: List[str] = field(default_factory=list)
@@ -41,6 +45,8 @@ class Channel(PatternObject):
 
 
 def truthy(val):
+    '''Returns True for values that look truthy, False otherwise'''
+
     if hasattr(val, 'lower'):
         return val.lower() in ['yes', 'true', '1']
     else:
@@ -50,6 +56,28 @@ def truthy(val):
 @dataclass_json
 @dataclass
 class Configuration(PatternObject):
+    '''Main mocbot configuration.
+
+    You may provide configuration information via environment variables,
+    via a dictionary, or via a YAML configuration file.
+
+    An example configuration file might look like this:
+
+        ---
+        mocbot:
+          nick: mocbot_dev
+
+          include_repos:
+            - larsks/
+
+          channels:
+            - name: '#oddbit'
+              include_events:
+                - push
+              exclude_repos:
+                - larsks/boring
+    '''
+
     nick: str = os.environ.get('MOCBOT_NICK', DEFAULT_NICK)
     nickserv_password: Optional[str] = os.environ.get('MOCBOT_NICKSERV_PASSWORD')
 

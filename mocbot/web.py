@@ -29,6 +29,15 @@ class GithubEvents:
         self.sock.connect(sock_uri)
 
     def validate_request(self, request):
+        '''Validate that an request is well formated and authorized.
+
+        Ensure that a request has an X-Github-Event header and a
+        JSON content-type.
+
+        If we are expecting requests to be signed, ensure that a signature
+        exists and is correct.
+        '''
+
         if 'x-github-event' not in request.headers:
             raise RequestValidationError('request does not appear to be a webhook event')
 

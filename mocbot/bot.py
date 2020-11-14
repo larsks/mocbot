@@ -51,6 +51,14 @@ class Announcer:
         return sock
 
     async def next_event(self, sock):
+        '''Return the next event from the webhook receiver.
+
+        This receives the JSON-encoded data from the webhook receiver,
+        de-serializes it, normalizes event and repository names, and
+        return a (repo_name, event_class, event_name, event) tuple to
+        the caller.
+        '''
+
         event_class, event_data = await sock.recv_multipart()
         event_class = event_class.decode()
         event = json.loads(event_data)
@@ -68,6 +76,21 @@ class Announcer:
         return repo_name, event_class, event_name, event
 
     def wants_event(self, channel, event_name, repo_name):
+        '''Determine if we should notify the channel about the given event.
+
+        Processes includes (events, repos) first, follwed by excludes.
+        That means excludes take precedent, so if you have...
+
+            include_repos:
+              - larsks/*
+
+            exclude_repos:
+              - larsks/boring
+
+        ...then you will get notifications for all larsks/* repos
+        except for larsks/boring.
+        '''
+
         LOG.debug('considering %s message for %s on channel %s',
                   event_name, repo_name, channel.name)
 
@@ -168,18 +191,25 @@ class Mocbot(bottom.Client):
                     self.on(event, attr)
 
     async def send(self, *args, **kwargs):
-        '''Send rate-limited irc messages'''
+        '''Send messages with rate limiting'''
 
         await self.ratelimit.limit()
         LOG.debug('send args=%s, kwargs=%s', args, kwargs)
         super().send(*args, **kwargs)
 
-    @events('PING')
+    @events('ping')
     async def on_ping(self, message, **kwargs):
+        '''Respond to irc PING requests'''
         await self.send('PONG', message=message)
 
-    @events('CLIENT_DISCONNECT')
+    @events('client_disconnect')
     async def on_disconnect(self, **kwargs):
+        '''Called when we are disconnected from the server.
+
+        Stop the announcer, then queue up a reconnect attempt
+        after reconnect_delay seconds.
+        '''
+
         LOG.warning('disconnected from server. reconnect in %d seconds...',
                     self.config.reconnect_delay)
         self._connected = False
@@ -189,8 +219,14 @@ class Mocbot(bottom.Client):
         await asyncio.sleep(self.config.reconnect_delay)
         asyncio.create_task(self.connect())
 
-    @events('CLIENT_CONNECT')
+    @events('client_connect')
     async def on_connect(self, **kwargs):
+        '''Called after we connect to the irc server.
+
+        Takes care of identifying to the server, joining
+        channels, and starting the announcer.
+        '''
+
         nick = self.config.nick
 
         LOG.info('identifying to irc')
